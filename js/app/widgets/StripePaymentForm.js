@@ -2,10 +2,13 @@ import React, { useState } from 'react'
 import { render } from 'react-dom'
 import _ from 'lodash'
 import classNames from 'classnames'
+import axios from 'axios'
+import { useTranslation } from 'react-i18next'
 
 import mastercard from 'payment-icons/min/flat/mastercard.svg'
 import visa from 'payment-icons/min/flat/visa.svg'
 import giropay from '../../../assets/svg/giropay.svg'
+import edenredLogo from '../../../assets/svg/Edenred_Logo.svg'
 
 import stripe from '../payment/stripe'
 import mercadopago from '../payment/mercadopago'
@@ -36,6 +39,7 @@ const methodPickerBtnClassNames = {
 const PaymentMethodPicker = ({ methods, onSelect }) => {
 
   const [ method, setMethod ] = useState('')
+  const [ t ] = useTranslation()
 
   return (
     <div style={ methodPickerStyles }>
@@ -44,12 +48,47 @@ const PaymentMethodPicker = ({ methods, onSelect }) => {
         <img src={ visa } height="45" className="mr-2" />
         <img src={ mastercard } height="45" />
       </button>
-      { _.includes(methods, 'giropay') && (
-        <button type="button"  className={ classNames({ ...methodPickerBtnClassNames, active: method === 'giropay' }) }
-          onClick={ () => { setMethod('giropay'); onSelect('giropay') } }>
-          <img src={ giropay } height="45" />
-        </button>
-      )}
+      { _.map(methods, m => {
+
+        if (m.type === 'giropay') {
+
+          return (
+            <button key={ m.type } type="button" className={ classNames({ ...methodPickerBtnClassNames, active: method === 'giropay' }) }
+              onClick={ () => { setMethod('giropay'); onSelect('giropay') } }>
+              <img src={ giropay } height="45" />
+            </button>
+          )
+        }
+
+        if (m.type === 'edenred') {
+
+          return (
+            <button key={ m.type } type="button" className={ classNames({ ...methodPickerBtnClassNames, active: method === 'edenred' }) }
+              onClick={ () => {
+
+                if (!m.data.edenredIsConnected) {
+                  window.location.href = m.data.edenredAuthorizeUrl
+                  return
+                }
+
+                setMethod('edenred')
+
+                axios.get('/order/payment/split')
+                  .then((response) => {
+                    document.getElementById('payment-redirect-help').querySelector('span').textContent = t('EDENRED_SPLIT_AMOUNTS', {
+                      edenred: (response.data.edenred / 100).formatMoney(),
+                      stripe: (response.data.stripe / 100).formatMoney(),
+                    })
+                    onSelect('edenred')
+                  })
+
+              }}>
+              <img src={ edenredLogo } height="45" />
+            </button>
+          )
+        }
+
+      }) }
     </div>
   )
 }
@@ -68,7 +107,10 @@ export default function(form, options) {
 
   const methods = Array
     .from(form.querySelectorAll('input[name="checkout_payment[method]"]'))
-    .map((el) => el.value)
+    .map((el) => ({
+      type: el.value,
+      data: el.dataset
+    }))
 
   disableBtn(submitButton)
 
@@ -133,14 +175,22 @@ export default function(form, options) {
 
   const onSelect = value => {
     form.querySelector(`input[name="checkout_payment[method]"][value="${value}"]`).checked = true
-    if (value === 'card') {
-      cc.mount(document.getElementById('card-element')).then(() => enableBtn(submitButton))
-      document.getElementById('payment-redirect-help').classList.add('hidden')
-    } else {
-      cc.unmount()
-      document.getElementById('card-errors').textContent = ''
-      document.getElementById('payment-redirect-help').classList.remove('hidden')
-      enableBtn(submitButton)
+
+    switch (value) {
+
+      case 'card':
+        cc.mount(document.getElementById('card-element')).then(() => enableBtn(submitButton))
+        document.getElementById('payment-redirect-help').classList.add('hidden')
+        break
+      case 'edenred':
+        cc.mount(document.getElementById('card-element')).then(() => enableBtn(submitButton))
+        document.getElementById('payment-redirect-help').classList.remove('hidden')
+        break
+      default:
+        cc.unmount()
+        document.getElementById('card-errors').textContent = ''
+        document.getElementById('payment-redirect-help').classList.remove('hidden')
+        enableBtn(submitButton)
     }
   }
 

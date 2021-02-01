@@ -1091,3 +1091,12 @@ services:
       $clientSecret: "%env(EDENRED_AUTHENTICATION_CLIENT_SECRET)%"
     tags:
       - { name: monolog.logger, channel: edenred }
+
+  AppBundle\Edenred\Client:
+    arguments:
+      $config: { base_uri: "%env(EDENRED_PAYMENT_BASE_URL)%" }
+      $paymentClientId: '%env(EDENRED_PAYMENT_CLIENT_ID)%'
+      $paymentClientSecret: '%env(EDENRED_PAYMENT_CLIENT_SECRET)%'
+    tags:
+      - { name: csa_guzzle.client }
+      - { name: monolog.logger, channel: edenred }

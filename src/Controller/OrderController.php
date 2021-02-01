@@ -5,6 +5,7 @@ namespace AppBundle\Controller;
 use ApiPlatform\Core\Api\IriConverterInterface;
 use AppBundle\Controller\Utils\OrderConfirmTrait;
 use AppBundle\DataType\TsRange;
+use AppBundle\Edenred\Client as EdenredClient;
 use AppBundle\Embed\Context as EmbedContext;
 use AppBundle\Entity\Address;
 use AppBundle\Entity\Delivery;
@@ -33,6 +34,7 @@ use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Sylius\Component\Payment\Model\PaymentInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -288,6 +290,23 @@ class OrderController extends AbstractController
         $parameters['form'] = $form->createView();
 
         return $this->render('order/payment.html.twig', $parameters);
+    }
+
+    /**
+     * @Route("/order/payment/split", name="order_payment_split")
+     */
+    public function paymentsplitAction(Request $request,
+        CartContextInterface $cartContext,
+        EdenredClient $edenredClient)
+    {
+        $order = $cartContext->getCart();
+
+        if (null === $order || null === $order->getVendor()) {
+
+            // return $this->redirectToRoute('homepage');
+        }
+
+        return new JsonResponse($edenredClient->splitAmounts($order));
     }
 
     /**

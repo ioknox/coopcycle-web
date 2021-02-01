@@ -220,6 +220,7 @@
         },
         "PLEASE_SELECT_ADDRESS": "Please select an address in the dropdown",
         "DOWNLOAD_EXAMPLE_SPREADSHEET": "Download an example spreadsheet",
-        "RESTAURANTS_AND_STORES": "Restaurants & stores"
+        "RESTAURANTS_AND_STORES": "Restaurants & stores",
+        "EDENRED_SPLIT_AMOUNTS": "You can pay {{edenred}} with your Edenred card, but you still need to pay {{stripe}} by credit card"
     }
 }
