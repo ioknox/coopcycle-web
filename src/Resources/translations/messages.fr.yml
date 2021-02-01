@@ -1130,3 +1130,6 @@ form.fulfillment_method.options.range_duration.label: Durée des créneaux
 ordering_delay.disclaimer: Nous recevons actuellement beaucoup de commandes, les délais s'allongent !
 ordering_delay.admin_reminder: Vous avez défini un retard global pour les commandes
 notifications.delivery_created: Une livraison avec enlèvement %date% a été créée
+profile.edenred.connected: Compte Edenred connecté
+profile.edenred.connect: Connecter mon compte Edenred
+edenred.oauth_connect.success: Votre compte Edenred est connecté !
